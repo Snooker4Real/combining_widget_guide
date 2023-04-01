@@ -1,12 +1,21 @@
+import 'package:flutter/services.dart';
+
 import './models/transaction.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import './widgets/chart.dart';
 import './widgets/new_transaction.dart';
 import './widgets/transaction_list.dart';
 
-
-void main() => runApp(MyApp());
+void main() {
+  // WidgetsFlutterBinding.ensureInitialized();
+  //SystemChrome.setPreferredOrientations([
+  //  DeviceOrientation.portraitUp,
+  //  DeviceOrientation.portraitDown,
+  //]);
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -14,28 +23,28 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Personal Expenses',
       theme: ThemeData(
-        primarySwatch: Colors.yellow,
-        accentColor: Colors.amber,
+        primarySwatch: Colors.deepOrange,
+        accentColor: Colors.orange,
         // errorColor: Colors.red,
         fontFamily: 'Quicksand',
         textTheme: ThemeData.light().textTheme.copyWith(
-            headline6: TextStyle(
+              headline6: TextStyle(
                 fontFamily: 'OpenSans',
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
+              ),
+              button: TextStyle(
+                color: Colors.white,
+              ),
             ),
-          button: TextStyle(
-            color: Colors.white,
-          ),
-        ),
         appBarTheme: AppBarTheme(
           textTheme: ThemeData.light().textTheme.copyWith(
-            headline6: TextStyle(
+                headline6: TextStyle(
                   fontFamily: 'OpenSans',
                   fontSize: 20,
-                fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-          ),
         ),
       ),
       home: MyHomePage(),
@@ -48,7 +57,6 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
   // late String titleInput;
   // late String amountInput;
-
 }
 
 class _MyHomePageState extends State<MyHomePage> {
@@ -67,6 +75,8 @@ class _MyHomePageState extends State<MyHomePage> {
     ),*/
   ];
 
+  bool _showChart = false;
+
   List<Transaction> get _recentTransactions {
     return _userTransactions.where((tx) {
       return tx.date.isAfter(
@@ -77,13 +87,13 @@ class _MyHomePageState extends State<MyHomePage> {
     }).toList();
   }
 
-  void _addNewTransaction(String txTitle, double txAmount, DateTime chosenDate) {
+  void _addNewTransaction(
+      String txTitle, double txAmount, DateTime chosenDate) {
     final newTx = Transaction(
         id: DateTime.now().toString(),
         title: txTitle,
         amount: txAmount,
-        date: chosenDate
-    );
+        date: chosenDate);
 
     setState(() {
       _userTransactions.add(newTx);
@@ -97,8 +107,9 @@ class _MyHomePageState extends State<MyHomePage> {
         return GestureDetector(
           child: NewTransaction(_addNewTransaction),
           onTap: () {},
-          behavior: HitTestBehavior.opaque,);
-        },
+          behavior: HitTestBehavior.opaque,
+        );
+      },
     );
   }
 
@@ -110,10 +121,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    MediaQuery.of(context).orientation == Orientation.portrait;
     final appBar = AppBar(
       title: Text('Personal Expenses'),
       actions: <Widget>[
-        IconButton(onPressed: () => _startAddNewTransaction(context), icon: Icon(Icons.add))
+        IconButton(
+            onPressed: () => _startAddNewTransaction(context),
+            icon: Icon(Icons.add))
       ],
     );
     return Scaffold(
@@ -123,25 +137,44 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Container(
-              height: (MediaQuery.of(context).size.height -
-                  appBar.preferredSize.height - MediaQuery.of(context).padding.top) *
-                  .3,
-              child: Chart(_recentTransactions),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text('Show Chart'),
+                Switch(
+                  value: _showChart,
+                  onChanged: (val) {
+                    setState(() {
+                      _showChart = val;
+                    });
+                  },
+                ),
+              ],
             ),
-            Container(
-              height: (MediaQuery.of(context).size.height -
-                  appBar.preferredSize.height - MediaQuery.of(context).padding.top) *
-                  .7,
-              child: TransactionList(_userTransactions, _deleteTransaction),
-            ),
+            _showChart
+                ? Container(
+                    height: (MediaQuery.of(context).size.height -
+                            appBar.preferredSize.height -
+                            MediaQuery.of(context).padding.top) *
+                        .7,
+                    child: Chart(_recentTransactions),
+                  )
+                : Container(
+                    height: (MediaQuery.of(context).size.height -
+                            appBar.preferredSize.height -
+                            MediaQuery.of(context).padding.top) *
+                        .7,
+                    child:
+                        TransactionList(_userTransactions, _deleteTransaction),
+                  ),
           ],
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton(
         onPressed: () => _startAddNewTransaction(context),
-        child: Icon(Icons.add),),
+        child: Icon(Icons.add),
+      ),
     );
   }
 }
